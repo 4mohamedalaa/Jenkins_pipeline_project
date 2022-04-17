@@ -41,7 +41,7 @@ resource "aws_security_group" "application" {
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]
+    cidr_blocks = [module.network.vpc_cider]
 
   }
 
@@ -78,7 +78,7 @@ resource "aws_security_group" "rds" {
   }
 
   tags = {
-    Name = "open_3306"
+    Name = "RDS"
   }
 }
 resource "aws_security_group" "elasticache" {
@@ -103,6 +103,6 @@ resource "aws_security_group" "elasticache" {
   }
 
   tags = {
-    Name = "open_6379"
+    Name = "elasticache"
   }
 }

@@ -14,3 +14,6 @@ output "vpc_id" {
   value = aws_vpc.ITI.id
   
 }
+output "vpc_cider" {
+  value = aws_vpc.ITI.cidr_block
+}
