@@ -19,3 +19,12 @@
       copy:
         src: agent.jar
         dest: /home/ubuntu
+    - name: copy env file to slave
+      copy:
+          src: ~/.env
+          dest: /home/ubuntu
+    - name: running docker without sudo  
+      user:
+          name: "ubuntu"
+          groups: docker
+          append: yes
