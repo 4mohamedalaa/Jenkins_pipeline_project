@@ -4,7 +4,7 @@ resource "aws_db_instance" "rds" {
   engine_version    = var.engine_version
   # Declaring the instance class
   instance_class = var.instance_class
-  name           = var.db_name
+  db_name           = var.db_name
   # User to connect the database instance 
   username = var.username
   # Password to connect the database instance 

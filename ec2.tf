@@ -2,8 +2,10 @@ resource "aws_instance" "bastion" {
   ami             = data.aws_ami.ubuntu.id
   instance_type   = "t2.micro"
   subnet_id       = module.network.public1
-  key_name        = "myKey"
-  security_groups = ["${aws_security_group.bastion.id}"]
+  key_name        = aws_key_pair.key.id
+  vpc_security_group_ids      = [aws_security_group.bastion.id]
+
+  
   provisioner "local-exec" {
     command = "echo IP address is ${self.public_ip} > id.txt"
   }
@@ -16,8 +18,8 @@ resource "aws_instance" "application" {
   ami             = data.aws_ami.ubuntu.id
   instance_type   = "t2.micro"
   subnet_id       = module.network.private1
-  key_name        = "myKey"
-  security_groups = ["${aws_security_group.application.id}"]
+  key_name        = aws_key_pair.key.id
+  vpc_security_group_ids      = [aws_security_group.bastion.id]
   tags = {
     Name = "application"
   }
