@@ -22,7 +22,7 @@ pipeline {
         withAWS(credentials: 'jenkins_aws', region: 'us-east-1') { 
           withCredentials([usernamePassword(credentialsId: 'terraform_mysql_env', usernameVariable: 'db_User', passwordVariable: 'db_Pass')]) {             
                   sh 'chmod 777 $HOME/mykey.pem'
-                  sh 'terraform -chdir=Terraform/ output -raw key > $HOME/mykey.pem'
+                  sh 'terraform -chdir=Terraform/ output -raw private_key > $HOME/mykey.pem'
                   sh 'chmod 400 $HOME/mykey.pem'
           }
              }
