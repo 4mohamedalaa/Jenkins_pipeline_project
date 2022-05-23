@@ -41,7 +41,9 @@ resource "aws_security_group" "application" {
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
-    cidr_blocks = [module.network.vpc_cider]
+    # cidr_blocks = [module.network.vpc_cider]
+    cidr_blocks = ["0.0.0.0/0"]
+
 
   }
 
