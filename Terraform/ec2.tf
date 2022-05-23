@@ -19,7 +19,7 @@ resource "aws_instance" "application" {
   instance_type   = "t2.micro"
   subnet_id       = module.network.private1
   key_name        = aws_key_pair.key.id
-  vpc_security_group_ids      = [aws_security_group.bastion.id]
+  vpc_security_group_ids      = [aws_security_group.application.id]
   tags = {
     Name = "application"
   }
