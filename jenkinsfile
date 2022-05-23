@@ -3,18 +3,105 @@ pipeline {
     tools {
   terraform 'terraform'
 }
+
+
     stages {
         stage('Building the infrastructure') {
             steps {
         withAWS(credentials: 'jenkins_aws', region: 'us-east-1') { 
-         // git url: 'https://github.com/4mohamedalaa/terraform_infrastucture.git',branch: 'main'
-          withCredentials([usernamePassword(credentialsId: 'terraform_mysql_env',usernameVariable: 'db_User', passwordVariable: 'db_Pass')]){ 
-                  sh 'terraform  init'
-                  sh "TF_VAR_username=${db_User} TF_VAR_password=${db_Pass}=  terraform  apply --var-file dev.tfvars -auto-approve"
-                }          
-                    
-                }
+          sh 'echo $HOME'
+          sh 'terraform -chdir=Terraform/ init'
+          withCredentials([usernamePassword(credentialsId: 'terraform_mysql_env', usernameVariable: 'db_User', passwordVariable: 'db_Pass')]) {
+                            sh "terraform -chdir=Terraform/ apply --var-file dev.tfvars -auto-approve"
+          }
+             }
+        }
+        }
+        stage('Getting private key') {
+            steps {
+        withAWS(credentials: 'jenkins_aws', region: 'us-east-1') { 
+          withCredentials([usernamePassword(credentialsId: 'terraform_mysql_env', usernameVariable: 'db_User', passwordVariable: 'db_Pass')]) {             
+                  sh 'chmod 777 mykey.pem'
+                  sh 'terraform -chdir=Terraform/ output -raw key > $HOME/mykey.pem'
+                  sh 'chmod 400 $HOME/mykey.pem'
+          }
+             }
+        }
+        }
+stage('Creating Ansible config file') {
+            steps {
+        withAWS(credentials: 'jenkins_aws', region: 'us-east-1') { 
+          withCredentials([usernamePassword(credentialsId: 'terraform_mysql_env', usernameVariable: 'db_User', passwordVariable: 'db_Pass')]) {             
+            sh '''
+            cat <<EOF > ~/.ssh/config
+host bastion
+   HostName `terraform -chdir=Terraform/ output -raw bastion_public_ip`
+   User ubuntu
+   identityFile ~/mykey.pem
+   StrictHostKeyChecking=no
+
+
+host private_instance
+   HostName  `terraform -chdir=Terraform/ output -raw application_private_ip`
+   user  ubuntu
+   ProxyCommand ssh bastion -W %h:%p
+   identityFile ~/mykey.pem
+   StrictHostKeyChecking=no
+
+EOF
+'''
+          }
+             }
+        }
+        }
+
+ stage('creating Ansible inventory file') {
+            steps {
+        withAWS(credentials: 'jenkins_aws', region: 'us-east-1') { 
+          withCredentials([usernamePassword(credentialsId: 'terraform_mysql_env', usernameVariable: 'db_User', passwordVariable: 'db_Pass')]) {             
+             sh '''
+            cat <<EOF > ./inventory
+[host]
+private_instance
+EOF
+'''
+          }
+             }
+        }
+        }
+           stage('Creating Enviroment variables file for our node app') {
+            steps {
+        withAWS(credentials: 'jenkins_aws', region: 'us-east-1') { 
+          withCredentials([usernamePassword(credentialsId: 'terraform_mysql_env', usernameVariable: 'db_User', passwordVariable: 'db_Pass')]) {             
+              sh '''
+            cat <<EOF > ./.env
+RDS_HOSTNAME=`terraform -chdir=Terraform/ output -raw rds_add `
+RDS_PORT=`terraform -chdir=Terraform/ output -raw rds_port `
+REDIS_HOSTNAME=`terraform -chdir=Terraform/ output -raw redis_add `
+REDIS_PORT=`terraform -chdir=Terraform/ output -raw redis_port `
+'''
+          }
+             }
+        }
+        }
+    
+             stage('Running Ansible') {
+            steps {
+        withAWS(credentials: 'jenkins_aws', region: 'us-east-1') { 
+          withCredentials([usernamePassword(credentialsId: 'terraform_mysql_env', usernameVariable: 'db_User', passwordVariable: 'db_Pass')]) {             
+sh 'ansible-playbook -i ~/inventory  Ansible/playbook.yaml'
+          }
+             }
+        }
+        }
+        stage('application Link ') {
+            steps {
+        withAWS(credentials: 'jenkins_aws', region: 'us-east-1') { 
+          withCredentials([usernamePassword(credentialsId: 'terraform_mysql_env', usernameVariable: 'db_User', passwordVariable: 'db_Pass')]) {             
+sh 'terraform -chdir=Terraform/ output app_link'
+          }
              }
         }
         }
     }
+}

@@ -25,3 +25,7 @@ output "redis_port" {
   value= aws_elasticache_cluster.elasticache.port
 
 }
+output "app_link" {
+  value = aws_lb.LB.dns_name
+
+}
