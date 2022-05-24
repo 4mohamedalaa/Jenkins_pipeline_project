@@ -1,0 +1,17 @@
+pipeline {
+  agent any
+    tools {
+       terraform 'terraform'
+    }
+    stages {
+       
+        stage('Destroying the infrastructure') {
+            steps {
+        withAWS(credentials: 'jenkins_aws', region: 'us-east-1') { 
+          sh 'terraform -chdir=Terraform/ init'
+          withCredentials([usernamePassword(credentialsId: 'terraform_mysql_env', usernameVariable: 'db_User', passwordVariable: 'db_Pass')]) {
+                            sh "terraform -chdir=Terraform/ destroy --var-file dev.tfvars -auto-approve"
+          }
+    }
+    
+}
