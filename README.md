@@ -40,7 +40,7 @@ In this project we will:
 * ## Node-app Deployment pipeline
 
 
-    * jenkins deploy the app from this [forked repo](git@github.com:4mohamedalaa/jenkins_nodejs_example.git) 
+    * jenkins deploy the app from this [forked repo](https://github.com/4mohamedalaa/jenkins_nodejs_example.git) 
 
     * the app need Enviroment variables and their values are created by `terraform` then copied to the private instance using `ansible`
 
